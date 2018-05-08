@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2043
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudKit", "CloudKit\CloudKit.csproj", "{0E9FFC8D-330F-4112-B8FA-32A423BBAFAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudKit.ConsoleTool", "CloudKit.ConsoleTool\CloudKit.ConsoleTool.csproj", "{96A19FA7-0F2E-4774-B852-4700529FD7AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudKit.SteamKit", "CloudKit.SteamKit\CloudKit.SteamKit.csproj", "{80243D09-BA4E-47A2-8DE0-CEC25DF87D63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0E9FFC8D-330F-4112-B8FA-32A423BBAFAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0E9FFC8D-330F-4112-B8FA-32A423BBAFAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0E9FFC8D-330F-4112-B8FA-32A423BBAFAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0E9FFC8D-330F-4112-B8FA-32A423BBAFAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96A19FA7-0F2E-4774-B852-4700529FD7AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96A19FA7-0F2E-4774-B852-4700529FD7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96A19FA7-0F2E-4774-B852-4700529FD7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96A19FA7-0F2E-4774-B852-4700529FD7AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80243D09-BA4E-47A2-8DE0-CEC25DF87D63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80243D09-BA4E-47A2-8DE0-CEC25DF87D63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80243D09-BA4E-47A2-8DE0-CEC25DF87D63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80243D09-BA4E-47A2-8DE0-CEC25DF87D63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,4 +5,8 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CloudKit.SteamKit\CloudKit.SteamKit.csproj" />
+  </ItemGroup>
+
 </Project>
