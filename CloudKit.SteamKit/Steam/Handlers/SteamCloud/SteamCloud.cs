@@ -19,12 +19,7 @@ namespace SteamKit2
     {
         private List<JobID> _clientFileDownloadJobs = new List<JobID>();
         private List<JobID> _clientBeginFileUploadJobs = new List<JobID>();
-
-        private bool _isDownloading = false;
-        private bool _isUploading = false;
-        private bool _isCommitting = false;
-
-        private JobID _lastJobId;
+        private List<JobID> _clientCommitFileJobs = new List<JobID>();
 
         Dictionary<EMsg, Action<IPacketMsg>> dispatchMap;
 
@@ -36,11 +31,9 @@ namespace SteamKit2
                 { EMsg.ClientUFSGetSingleFileInfoResponse, HandleSingleFileInfoResponse },
                 { EMsg.ClientUFSGetFileListForAppResponse, HandleGetFileListForAppResponse },
                 { EMsg.ClientUFSShareFileResponse, HandleShareFileResponse },
-                { EMsg.ServiceMethodResponse, HandleServiceMethodResponse },
-
+                { EMsg.ServiceMethodResponse, HandleServiceMethodResponse }
             };
         }
-
 
         /// <summary>
         /// Requests details for a specific item of user generated content from the Steam servers.
@@ -49,21 +42,21 @@ namespace SteamKit2
         /// </summary>
         /// <param name="ugcId">The unique user generated content id.</param>
         /// <returns>The Job ID of the request. This can be used to find the appropriate <see cref="UGCDetailsCallback"/>.</returns>
-        public AsyncJob<UGCDetailsCallback> RequestUGCDetails( UGCHandle ugcId )
+        public AsyncJob<UGCDetailsCallback> RequestUGCDetails(UGCHandle ugcId)
         {
-            if ( ugcId == null )
+            if (ugcId == null)
             {
-                throw new ArgumentNullException( nameof(ugcId) );
+                throw new ArgumentNullException(nameof(ugcId));
             }
 
-            var request = new ClientMsgProtobuf<CMsgClientUFSGetUGCDetails>( EMsg.ClientUFSGetUGCDetails );
+            var request = new ClientMsgProtobuf<CMsgClientUFSGetUGCDetails>(EMsg.ClientUFSGetUGCDetails);
             request.SourceJobID = Client.GetNextJobID();
 
             request.Body.hcontent = ugcId;
 
-            this.Client.Send( request );
+            this.Client.Send(request);
 
-            return new AsyncJob<UGCDetailsCallback>( this.Client, request.SourceJobID );
+            return new AsyncJob<UGCDetailsCallback>(this.Client, request.SourceJobID);
         }
 
         /// <summary>
@@ -95,9 +88,9 @@ namespace SteamKit2
         /// <param name="appid">The app id of the game.</param>
         /// <param name="filename">The path to the file being requested.</param>
         /// <returns>The Job ID of the request. This can be used to find the appropriate <see cref="SingleFileInfoCallback"/>.</returns>
-        public AsyncJob<SingleFileInfoCallback> GetSingleFileInfo( uint appid, string filename )
+        public AsyncJob<SingleFileInfoCallback> GetSingleFileInfo(uint appid, string filename)
         {
-            var request = new ClientMsgProtobuf<CMsgClientUFSGetSingleFileInfo> (EMsg.ClientUFSGetSingleFileInfo );
+            var request = new ClientMsgProtobuf<CMsgClientUFSGetSingleFileInfo>(EMsg.ClientUFSGetSingleFileInfo);
             request.SourceJobID = Client.GetNextJobID();
 
             request.Body.app_id = appid;
@@ -105,7 +98,7 @@ namespace SteamKit2
 
             this.Client.Send(request);
 
-            return new AsyncJob<SingleFileInfoCallback>( this.Client, request.SourceJobID );
+            return new AsyncJob<SingleFileInfoCallback>(this.Client, request.SourceJobID);
         }
 
         /// <summary>
@@ -119,8 +112,7 @@ namespace SteamKit2
         {
             var request = new ServiceCallMsgProtobuf<CCloud_ClientFileDownload_Request>(EMsg.ServiceMethodCallFromClient);
             request.SourceJobID = Client.GetNextJobID();
-            
-     
+
             request.Body.appid = appid;
             request.Body.filename = fileName;
             request.TargetJobName = SteamCloudServiceJobConstants.ClientFileDownload;
@@ -130,15 +122,11 @@ namespace SteamKit2
                 _clientFileDownloadJobs.Add(request.SourceJobID);
             }
 
-            _lastJobId = request.SourceJobID;
-
-            _isDownloading = true;
-
-            // request.Payload.Write()
             Client.Send(request);
 
             return new AsyncJob<ClientFileDownloadCallback>(Client, request.SourceJobID);
         }
+
         /// <summary>
         /// Request a list of files stored in the cloudfor a target App Id
         /// Results are returned in a <see cref="DepotKeyCallback"/> callback.
@@ -148,14 +136,11 @@ namespace SteamKit2
         /// <returns>The Job ID of the request. This can be used to find the appropriate <see cref="DepotKeyCallback"/>.</returns>
         public AsyncJob<ClientBeginFileUploadCallback> RequestFileUpload(uint appID, string fileName, byte[] fileData, bool compress = false)
         {
-
             byte[] compressedData = compress ? ZipUtil.Compress(fileData) : fileData;
 
             var request = new ServiceCallMsgProtobuf<CCloud_ClientBeginFileUpload_Request>(EMsg.ServiceMethodCallFromClient);
             request.SourceJobID = Client.GetNextJobID();
 
-           // request.Body.cell_id = 50;
-            //request.Body.platforms_to_sync = 4294967295;
             request.Body.appid = appID;
             request.Body.is_shared_file = false;
             request.Body.can_encrypt = true;
@@ -171,10 +156,6 @@ namespace SteamKit2
                 _clientBeginFileUploadJobs.Add(request.SourceJobID);
             }
 
-            _lastJobId = request.SourceJobID;
-
-            _isUploading = true;
-    
             Client.Send(request);
 
             return new AsyncJob<ClientBeginFileUploadCallback>(Client, request.SourceJobID);
@@ -189,7 +170,6 @@ namespace SteamKit2
         /// <returns>The Job ID of the request. This can be used to find the appropriate <see cref="DepotKeyCallback"/>.</returns>
         public AsyncJob<ClientCommitFileUploadCallback> CommitFileUpload(uint appID, string fileName, byte[] fileData, bool succeeded = false)
         {
-
             var request = new ServiceCallMsgProtobuf<CCloud_ClientCommitFileUpload_Request>(EMsg.ServiceMethodCallFromClient);
             request.SourceJobID = Client.GetNextJobID();
 
@@ -199,19 +179,16 @@ namespace SteamKit2
             request.Body.file_sha = CryptoHelper.SHAHash(fileData);
             request.TargetJobName = SteamCloudServiceJobConstants.ClientCommitFileUpload;
 
-            lock (_clientBeginFileUploadJobs)
+            lock (_clientCommitFileJobs)
             {
-                _clientBeginFileUploadJobs.Add(request.SourceJobID);
+                _clientCommitFileJobs.Add(request.SourceJobID);
             }
-
-            _lastJobId = request.SourceJobID;
-
-            _isCommitting = true;
 
             Client.Send(request);
 
             return new AsyncJob<ClientCommitFileUploadCallback>(Client, request.SourceJobID);
         }
+
         /// <summary>
         /// Commit a Cloud file at the given path to make its UGC handle publicly visible.
         /// Results are returned in a <see cref="ShareFileCallback"/>.
@@ -220,7 +197,7 @@ namespace SteamKit2
         /// <param name="appid">The app id of the game.</param>
         /// <param name="filename">The path to the file being requested.</param>
         /// <returns>The Job ID of the request. This can be used to find the appropriate <see cref="ShareFileCallback"/>.</returns>
-        public AsyncJob<ShareFileCallback> ShareFile( uint appid, string filename )
+        public AsyncJob<ShareFileCallback> ShareFile(uint appid, string filename)
         {
             var request = new ClientMsgProtobuf<CMsgClientUFSShareFile>(EMsg.ClientUFSShareFile);
             request.SourceJobID = Client.GetNextJobID();
@@ -230,44 +207,43 @@ namespace SteamKit2
 
             this.Client.Send(request);
 
-            return new AsyncJob<ShareFileCallback>( this.Client, request.SourceJobID );
+            return new AsyncJob<ShareFileCallback>(this.Client, request.SourceJobID);
         }
 
         /// <summary>
         /// Handles a client message. This should not be called directly.
         /// </summary>
         /// <param name="packetMsg">The packet message that contains the data.</param>
-        public override void HandleMsg( IPacketMsg packetMsg )
+        public override void HandleMsg(IPacketMsg packetMsg)
         {
-            if ( packetMsg == null )
+            if (packetMsg == null)
             {
-                throw new ArgumentNullException( nameof(packetMsg) );
+                throw new ArgumentNullException(nameof(packetMsg));
             }
-            
-            bool haveFunc = dispatchMap.TryGetValue( packetMsg.MsgType, out var handlerFunc );
 
-            if ( !haveFunc )
+            bool haveFunc = dispatchMap.TryGetValue(packetMsg.MsgType, out var handlerFunc);
+
+            if (!haveFunc)
             {
                 // ignore messages that we don't have a handler function for
                 return;
             }
 
-            handlerFunc( packetMsg );
+            handlerFunc(packetMsg);
         }
 
-
         #region ClientMsg Handlers
-        void HandleUGCDetailsResponse( IPacketMsg packetMsg )
+        void HandleUGCDetailsResponse(IPacketMsg packetMsg)
         {
-            var infoResponse = new ClientMsgProtobuf<CMsgClientUFSGetUGCDetailsResponse>( packetMsg );
+            var infoResponse = new ClientMsgProtobuf<CMsgClientUFSGetUGCDetailsResponse>(packetMsg);
 
             var callback = new UGCDetailsCallback(infoResponse.TargetJobID, infoResponse.Body);
-            this.Client.PostCallback( callback );
+            this.Client.PostCallback(callback);
         }
 
         void HandleSingleFileInfoResponse(IPacketMsg packetMsg)
         {
-            var infoResponse = new ClientMsgProtobuf<CMsgClientUFSGetSingleFileInfoResponse>( packetMsg );
+            var infoResponse = new ClientMsgProtobuf<CMsgClientUFSGetSingleFileInfoResponse>(packetMsg);
 
             var callback = new SingleFileInfoCallback(infoResponse.TargetJobID, infoResponse.Body);
             this.Client.PostCallback(callback);
@@ -288,48 +264,52 @@ namespace SteamKit2
             var callback = new ShareFileCallback(shareResponse.TargetJobID, shareResponse.Body);
             this.Client.PostCallback(callback);
         }
+
         void HandleServiceMethodResponse(IPacketMsg packetMsg)
         {
-            if (_isDownloading)
+            CallbackMsg callback = null;
+
+            var jobId = packetMsg.TargetJobID;
+
+            if (_clientFileDownloadJobs.Contains(jobId))
             {
-                _isDownloading = false;
+                lock (_clientFileDownloadJobs)
+                {
+                    _clientFileDownloadJobs.Remove(jobId);
+                }
 
                 var shareResponse = new ClientMsgProtobuf<CCloud_ClientFileDownload_Response>(packetMsg);
 
-                var callback = new ClientFileDownloadCallback(shareResponse.TargetJobID, shareResponse.Body);
-                lock (_clientFileDownloadJobs)
-                {
-                    _clientFileDownloadJobs.Remove(packetMsg.SourceJobID);
-                }
-                this.Client.PostCallback(callback);
+                callback = new ClientFileDownloadCallback(shareResponse.TargetJobID, shareResponse.Body);
             }
-            else if (_isUploading)
+            else if (_clientBeginFileUploadJobs.Contains(jobId))
             {
-                _isUploading = false;
+                lock (_clientBeginFileUploadJobs)
+                {
+                    _clientBeginFileUploadJobs.Remove(jobId);
+                }
 
                 var shareResponse = new ClientMsgProtobuf<CCloud_ClientBeginFileUpload_Response>(packetMsg);
 
-                var callback = new ClientBeginFileUploadCallback(shareResponse.TargetJobID, shareResponse.Body);
-                lock (_clientBeginFileUploadJobs)
-                {
-                    _clientBeginFileUploadJobs.Remove(packetMsg.SourceJobID);
-                }
-                this.Client.PostCallback(callback);
+                callback = new ClientBeginFileUploadCallback(shareResponse.TargetJobID, shareResponse.Body);
             }
-            else
+            else if (_clientCommitFileJobs.Contains(jobId))
             {
-                if (_isCommitting)
+                lock (_clientCommitFileJobs)
                 {
-                    _isCommitting = false;
-                    var shareResponse = new ClientMsgProtobuf<CCloud_ClientCommitFileUpload_Response>(packetMsg);
-
-                    var callback = new ClientCommitFileUploadCallback(shareResponse.TargetJobID, shareResponse.Body);
-
-                    this.Client.PostCallback(callback);
+                    _clientCommitFileJobs.Remove(jobId);
                 }
+
+                var shareResponse = new ClientMsgProtobuf<CCloud_ClientCommitFileUpload_Response>(packetMsg);
+
+                callback = new ClientCommitFileUploadCallback(shareResponse.TargetJobID, shareResponse.Body);
+            }
+
+            if (callback != null)
+            {
+                Client.PostCallback(callback);
             }
         }
         #endregion
-
     }
 }
