@@ -27,7 +27,7 @@ namespace CloudKit.ConsoleTool
         {
             if (args.Length < 2)
             {
-                Console.WriteLine("CloudClient: No username and password specified!");
+                Console.WriteLine("Client: No username and password specified!");
                 return;
             }
 
@@ -150,9 +150,7 @@ namespace CloudKit.ConsoleTool
 
             // at this point, we'd be able to perform actions on Steam
 
-            RunTests();
         }
-
 
         static void OnLoggedOff(SteamUser.LoggedOffCallback callback)
         {
@@ -208,15 +206,6 @@ namespace CloudKit.ConsoleTool
         static string FormatUrl(string host, string path)
         {
             return $"https://{host}{path}";
-        }
-
-        static void RunTests()
-        {
-            uint appID = 480;
-
-            DownloadFiles(appID);
-
-            //UploadFileTest(appID);
         }
 
         static async void DownloadFiles(uint appID)
