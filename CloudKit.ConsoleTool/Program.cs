@@ -304,6 +304,8 @@ namespace CloudKit.ConsoleTool
                                 CommitFile(appId, testFileName, testFileData, false);
 
                                 Console.WriteLine("File failed uploaded to cloud");
+                                
+                                return;
                             }
                         }
                     }
@@ -313,6 +315,8 @@ namespace CloudKit.ConsoleTool
                     CommitFile(appId, testFileName, testFileData, false);
 
                     Console.WriteLine("File uploaded to cloud failed with {0}", exception.ToString());
+                    
+                    return;
                 }
 
                 CommitFile(appId, testFileName, testFileData, true);
