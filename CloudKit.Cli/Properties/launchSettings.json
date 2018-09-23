@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "CloudKit.Cli": {
+      "commandName": "Project"
+    }
+  }
+}
