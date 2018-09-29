@@ -1,0 +1,17 @@
+build_script:
+  - cmd: >-
+      dotnet restore
+      
+      dotnet build CloudKit.sln --configuration Release
+
+environment:
+  global:
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+test: off
+image:
+  - Visual Studio 2017
+  - Ubuntu
+skip_commits:
+  files:
+    - '**/*.md'
