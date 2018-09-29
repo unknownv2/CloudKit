@@ -1,0 +1,7 @@
+language: csharp
+solution: CloudKit.sln
+mono: none
+dotnet: 2.1
+script:
+ - dotnet restore
+ - dotnet build ./CloudKit.sln --configuration Release
