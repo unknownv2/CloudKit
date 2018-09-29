@@ -149,7 +149,6 @@ namespace CloudKit.Cli
             Console.WriteLine("Successfully logged on!");
 
             // at this point, we'd be able to perform actions on Steam
-
         }
 
         static void OnLoggedOff(SteamUser.LoggedOffCallback callback)
@@ -211,7 +210,9 @@ namespace CloudKit.Cli
         static async void DownloadFiles(uint appID)
         {
             if (steamCloud == null)
+            {
                 return;
+            }
 
             var fileListInfo = await steamCloud.GetFileListForApp(appID);
 
@@ -225,7 +226,6 @@ namespace CloudKit.Cli
 
                 using (var client = new HttpClient())
                 {
-
                     foreach (var header in downloadFileInfo.RequestHeaders)
                     {
                         client.DefaultRequestHeaders.Add(header.Name, header.Value);
@@ -327,7 +327,7 @@ namespace CloudKit.Cli
 
         static async void CommitFile(uint appID, string fileName, byte[] fileData, bool commit)
         {
-            var commitFileUploadFailResp = await steamCloud.CommitFileUpload(appID, fileName, fileData, commit);
+            await steamCloud.CommitFileUpload(appID, fileName, fileData, commit);
         }
     }
 }
