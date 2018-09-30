@@ -1,4 +1,5 @@
 # CloudKit
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 A toolkit for accessing user/saved game data on Valve's Steam network directly without going through the Steam client.
 
